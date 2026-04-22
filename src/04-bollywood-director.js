@@ -46,12 +46,70 @@
  */
 export function createDialogueWriter(genre) {
   // Your code here
+  if (
+    genre !== "action" &&
+    genre !== "romance" &&
+    genre !== "comedy" &&
+    genre !== "drama"
+  )
+    return null;
+  return (acting = function (hero, villain) {
+    if (!hero || !villain) return "...";
+    let dialogue;
+    switch (genre) {
+      case "action":
+        dialogue = `${hero} says: 'Tujhe toh main dekh lunga, ${villain}!'`;
+        break;
+      case "romance":
+        dialogue = `${hero} whispers: '${villain}, tum mere liye sab kuch ho'`;
+        break;
+      case "comedy":
+        dialogue = `${hero} laughs: '${villain} bhai, kya kar rahe ho yaar!'`;
+        break;
+      case "drama":
+        dialogue = `${hero} cries: '${villain}, tune mera sab kuch cheen liya!'`;
+        break;
+      default:
+        return "...";
+    }
+    return dialogue;
+  });
 }
 
 export function createTicketPricer(basePrice) {
   // Your code here
+  if (basePrice <= 0) return null;
+  return function (seatType, isWeekend = false) {
+    let multipliers = 0;
+    switch (seatType.toLowerCase()) {
+      case "silver":
+        multipliers = 1;
+        break;
+      case "gold":
+        multipliers = 1.5;
+        break;
+      case "platinum":
+        multipliers = 2;
+        break;
+      default:
+        return null;
+    }
+    const price = basePrice * multipliers;
+    const finalPrice = isWeekend ? price * 1.3 : price;
+    return Math.round(finalPrice);
+  };
 }
 
 export function createRatingCalculator(weights) {
   // Your code here
+  if (typeof weights !== "object" || Array.isArray(weights) || weights === null)
+    return null;
+  return function (scores) {
+    const total = Object.keys(weights).reduce((sum, key) => {
+      return sum + weights[key] * scores[key];
+    }, 0);
+    return Number(total.toFixed(1));
+  };
 }
+
+//A factory function RETURNS another function. The returned function "remembers" the parameters of the outer function (this is a closure!).

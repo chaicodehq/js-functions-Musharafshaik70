@@ -65,16 +65,80 @@
  */
 export function createElection(candidates) {
   // Your code here
+  const votes = {};
+  const registeredVoters = new Set();
+  const votedVoters = new Set();
+  candidates.forEach((c) => {
+    votes[c.id] = 0;
+  });
+  function registerVoter(voter) {
+    if (!voter || !voter.id || voter.age < 18 || registeredVoters.has(voter.id))
+      return false;
+    registeredVoters.add(voter.id);
+    return true;
+  }
+
+  function castVote(voterId, candidateId, onSuccess, onError) {
+    if (!registeredVoters.has(voterId)) return onError("Voter not Registered.");
+    if (votedVoters.has(voterId)) return onError("Voter has already voted.");
+    if (!(candidateId in votes)) return onError("Candidate does not Exist");
+    votedVoters.add(voterId);
+    votes[candidateId]++;
+    return onSuccess({ voterId, candidateId });
+  }
+
+  function getResults(sortFn) {
+    const results = candidates.map((c) => ({ ...c, votes: votes[c.id] }));
+    if (sortFn) return results.sort(sortFn);
+    return results.sort((a, b) => b.votes - a.votes);
+  }
+
+  function getWinner() {
+    const checkVotes = candidates.every((c) => votes[c.id] === 0);
+    if (checkVotes) return null;
+    let maxVotes = -1;
+    for (let candidate of candidates) {
+      let count = votes[candidate.id];
+      if (count > maxVotes) {
+        maxVotes = count;
+      }
+      return { ...candidate, votes: count };
+    }
+  }
+  return { registerVoter, castVote, getResults, getWinner };
 }
 
 export function createVoteValidator(rules) {
   // Your code here
+  return function (voter) {
+    for (const field of rules.requiredFields) {
+      if (!(field in voter))
+        return { valid: false, reason: `Missing ${field}` };
+    }
+    if (voter.age < rules.minAge) return { valid: false, reason: `UnderAge` };
+    return { valid: true };
+  };
 }
 
 export function countVotesInRegions(regionTree) {
   // Your code here
+  if (!regionTree) return 0;
+  let total = regionTree.votes || 0;
+  if (regionTree.subRegions) {
+    total += regionTree.subRegions.reduce(
+      (sum, sub) => sum + countVotesInRegions(sub),
+      0,
+    );
+  }
+  return total;
 }
 
 export function tallyPure(currentTally, candidateId) {
   // Your code here
+  return {
+    ...currentTally,
+    [candidateId]: (currentTally[candidateId] || 0) + 1,
+  };
 }
+
+//if somone can crack this question , then they are ready for SDE-1 role for big companies like flipkart, uber,amazon and sde-2 role for small startups
